@@ -1,151 +1,176 @@
 # AI-Assisted QA Automation Suite
 
-> End-to-end QA automation pipeline using Playwright, GitHub Actions, and Claude Code AI for test generation
+> End-to-end QA automation pipeline using Playwright, Postman, GitHub Actions, Jira, and Claude Code AI
 
-![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/ai-qa-automation-suite/playwright.yml?label=build&style=flat-square)
-![Playwright](https://img.shields.io/badge/Playwright-1.61+-45ba4b?logo=playwright&logoColor=white&style=flat-square)
-![Node.js](https://img.shields.io/badge/Node.js-LTS-339933?logo=node.js&logoColor=white&style=flat-square)
-
----
-
-## Project Overview
-
-This is a portfolio project demonstrating how AI tooling can accelerate modern QA automation workflows. It combines three pillars of production-quality test engineering:
-
-- **UI Testing** — Playwright-driven end-to-end tests covering real user journeys on a live demo application
-- **CI/CD Pipeline** — GitHub Actions workflow that runs the full test suite on every push and pull request, uploading HTML reports as artifacts
-- **AI-Driven Test Generation** — Claude Code (Anthropic's AI coding agent) was used to generate, review, and refine test cases from plain-English scenario descriptions, demonstrating how AI can compress the test-writing cycle
+![Build Status](https://github.com/syed-arib-hasan/ai-qa-automation-suite/actions/workflows/playwright.yml/badge.svg)
+![Node.js](https://img.shields.io/badge/Node.js-20-green)
+![Playwright](https://img.shields.io/badge/Playwright-latest-blue)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-v2.1.190-purple)
 
 ---
 
-## Tech Stack
+## 📌 Project Overview
 
-| Tool | Purpose |
-|---|---|
-| [Playwright](https://playwright.dev) | Browser automation and test runner |
-| JavaScript | Test scripting language |
-| [GitHub Actions](https://github.com/features/actions) | CI/CD pipeline |
-| [Claude Code](https://claude.ai/code) | AI-assisted test generation |
-| Node.js (LTS) | Runtime environment |
+This is a portfolio project demonstrating a complete AI-assisted QA automation
+pipeline. It covers UI testing, REST API testing, CI/CD integration, automated
+failure notifications, and defect tracking — all connected in one end-to-end
+workflow.
+
+Test scripts were generated using **Claude Code** (AI), then manually reviewed,
+debugged, and verified before being committed — reflecting real-world
+AI-assisted QA engineering practices.
 
 ---
 
-## Project Architecture
+## 🛠️ Tech Stack
+
+| Tool           | Purpose                               |
+| -------------- | ------------------------------------- |
+| Playwright     | UI/E2E test automation                |
+| Postman        | REST API testing with assertions      |
+| GitHub Actions | CI/CD pipeline                        |
+| Claude Code    | AI-assisted test generation           |
+| Jira           | Bug tracking and defect management    |
+| Gmail SMTP     | Automated failure email notifications |
+
+---
+
+## 🏗️ Project Architecture
 
 ```
-┌─────────────────────┐
-│   Claude Code (AI)  │  ← Generates tests from plain-English scenarios
-└──────────┬──────────┘
-           │  produces
-           ▼
-┌─────────────────────┐
-│  Playwright Tests   │  ← Executes E2E tests in Chromium / Firefox / WebKit
-└──────────┬──────────┘
-           │  results fed into
-           ▼
-┌─────────────────────┐
-│  GitHub Actions     │  ← Runs on every push and pull request
-│  CI/CD Pipeline     │
-└──────────┬──────────┘
-           │  uploads
-           ▼
-┌─────────────────────┐
-│  HTML Report        │  ← Stored as a downloadable Actions artifact (30 days)
-│  Artifact           │
-└─────────────────────┘
+Developer pushes code to GitHub
+            ↓
+    GitHub Actions triggers
+            ↓
+  Playwright UI Tests run on Chromium
+            ↓
+    ┌───────────────────────┐
+    │   Tests Pass ✅        │   → HTML report uploaded as artifact
+    │   Tests Fail ❌        │   → Failure notification job triggers
+    └───────────────────────┘
+            ↓ (on failure)
+  Gmail SMTP sends failure email
+  with repo, branch, commit, and
+  link to the failed Actions run
+            ↓
+    Bug logged manually in Jira
+    with steps to reproduce,
+    expected vs actual results
 ```
 
 ---
 
-## Test Coverage
+## ✅ Test Coverage
 
-All tests target the [Restful Booker Platform](https://automationintesting.online) — a publicly available hotel booking demo application built for QA practice, featuring the fictional property **Willow Creek Lodge**.
+### UI Tests — Playwright
 
-| # | Scenario | Assertion |
-|---|---|---|
-| 1 | Homepage loads and displays hotel name | "Willow Creek Lodge" text is visible |
-| 2 | Rooms section is visible on the homepage | `#rooms` section and at least one room card are visible |
-| 3 | Fill out and submit the contact form | Success message "Thanks for getting in touch" appears after submission |
-| 4 | Booking panel shows Check In and Check Out fields | Both date fields and the "Check Availability" button are visible on the homepage |
+Tested on: `https://automationintesting.online` (Restful Booker)
+
+| # | Test Case                                         | Status                        |
+| - | ------------------------------------------------- | ----------------------------- |
+| 1 | Homepage loads and displays hotel name            | ❌ Intentional Failure (demo) |
+| 2 | Rooms section is visible on homepage              | ✅ Pass                       |
+| 3 | Contact form fills and submits successfully       | ✅ Pass                       |
+| 4 | Booking panel shows Check In and Check Out fields | ✅ Pass                       |
+
+### API Tests — Postman
+
+Tested on: `https://restful-booker.herokuapp.com`
+
+| # | Request              | Method | Assertions |
+| - | -------------------- | ------ | ---------- |
+| 1 | Get Auth Token       | POST   | 2/2 ✅     |
+| 2 | Get All Bookings     | GET    | 2/2 ✅     |
+| 3 | Create Booking       | POST   | 3/3 ✅     |
+| 4 | Get Specific Booking | GET    | 3/3 ✅     |
+| 5 | Delete Booking       | DELETE | 1/1 ✅     |
+
+**Total API assertions: 11/11 passing**
 
 ---
 
-## AI-Assisted Workflow
+## ⚙️ CI/CD Pipeline
 
-All four test scenarios in this project were generated by describing the desired behaviour in plain English to **Claude Code**, Anthropic's AI coding agent. Claude Code produced the complete Playwright test file — including correct selectors, assertions, and test structure — without any manual test authoring.
+GitHub Actions runs automatically on every push and pull request to `main`.
 
-Selectors were iteratively refined by having Claude Code inspect the live DOM directly (via a headless Playwright script), identifying discrepancies such as the site's use of a React Big Calendar widget instead of traditional date inputs, and a hero CTA button that shared the same text as the room booking links.
+Pipeline steps:
 
-For a full walkthrough of the AI-assisted process, prompts used, and observations on output quality, see [AI_PROCESS.md](./AI_PROCESS.md).
+1. Checkout code
+2. Set up Node.js 20
+3. Install dependencies
+4. Install Playwright Chromium browser
+5. Run Playwright test suite
+6. Upload HTML test report as downloadable artifact
+7. On failure → send email notification automatically via Gmail SMTP
 
 ---
 
-## How to Run Locally
+## 🔴 Current Pipeline Status
 
-**Prerequisites:** Node.js LTS installed.
+The pipeline is currently in a **FAILING** state — intentionally.
+
+This is a live demonstration of the failure notification system:
+
+* Test 1 has a deliberately wrong assertion
+* GitHub Actions detects the failure
+* An automated email is sent immediately with the repo, branch, commit SHA,
+  and a direct link to the failed run
+* This proves the end-to-end alert system works correctly
+
+To restore the passing state, the assertion in `tests/booking.spec.js` line 6
+can be reverted to the correct hotel name.
+
+---
+
+---
+
+## 🤖 AI-Assisted Workflow
+
+Test scripts in this project were generated using  **Claude Code v2.1.190** .
+
+The workflow:
+
+1. Described test scenarios to Claude Code in plain English
+2. Claude Code generated the full test file
+3. Each test was manually reviewed for correct selectors and assertions
+4. Tests were run locally to verify before committing
+5. Any issues were debugged and fixed manually
+
+See [AI_PROCESS.md](https://claude.ai/chat/AI_PROCESS.md) for the full prompt, generated output,
+and human review process.
+
+---
+
+## 🚀 How to Run Locally
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 npm ci
 
-# 2. Install Playwright browsers
-npx playwright install
+# Install Playwright browser
+npx playwright install --with-deps chromium
 
-# 3. Run all tests (all browsers)
-npx playwright test
-
-# Run on Chromium only
+# Run all tests
 npx playwright test --project=chromium
 
-# Run with the interactive UI mode
-npx playwright test --ui
-```
-
-The HTML report opens automatically after the run. To view it manually:
-
-```bash
+# View HTML report
 npx playwright show-report
 ```
 
 ---
 
-## CI/CD Pipeline
-
-The GitHub Actions workflow (`.github/workflows/playwright.yml`) triggers automatically on every **push** and **pull request** to `main` / `master`.
-
-**Pipeline steps:**
-
-1. Checkout repository
-2. Set up Node.js (LTS)
-3. `npm ci` — clean install of dependencies
-4. `npx playwright install --with-deps` — install browsers and OS dependencies
-5. `npx playwright test` — run the full test suite across all configured browsers
-6. Upload the HTML report as a workflow artifact (retained for 30 days)
-
-Artifacts are accessible from the **Actions** tab of the repository under the run summary.
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 ai-qa-automation-suite/
 ├── .github/
 │   └── workflows/
-│       └── playwright.yml      # CI/CD pipeline definition
+│       └── playwright.yml      # GitHub Actions CI/CD pipeline
+├── postman/
+│   └── restful-booker-api-tests.json  # Postman collection
 ├── tests/
-│   └── booking.spec.js         # Playwright E2E test suite (Restful Booker)
-├── playwright-report/          # Generated HTML report (git-ignored)
-├── test-results/               # Raw test artifacts (git-ignored)
-├── playwright.config.js        # Playwright configuration
-├── package.json
+│   └── booking.spec.js         # Playwright UI tests
 ├── AI_PROCESS.md               # AI-assisted workflow documentation
-└── README.md
+├── playwright.config.js        # Playwright configuration
+└── README.md                   # This file
 ```
-
----
-
-## Author
-
-**[Your Name]**
-[LinkedIn](https://www.linkedin.com/in/your-linkedin-handle)
