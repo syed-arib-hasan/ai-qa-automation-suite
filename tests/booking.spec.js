@@ -5,7 +5,7 @@ const BASE_URL = 'https://automationintesting.online';
 test.describe('Restful Booker UI Tests', () => {
   test('1. Homepage loads and displays hotel name "Willow Creek Lodge"', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Willow Creek Lodge').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Wrong Hotel Name').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('2. Rooms section is visible on the homepage', async ({ page }) => {
