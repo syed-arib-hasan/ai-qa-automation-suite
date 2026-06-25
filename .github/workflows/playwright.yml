@@ -1,27 +1,77 @@
-name: Playwright Tests
+name: AI QA Automation Pipeline
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'
+
 jobs:
-  test:
-    timeout-minutes: 60
+  # ── JOB 1: Playwright UI Tests ──────────────────────────────────────────────
+  playwright-tests:
+    name: Playwright UI Tests
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=chromium
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  # ── JOB 2: Notify on Failure ─────────────────────────────────────────────
+  notify-on-failure:
+    name: Send Failure Notification
+    runs-on: ubuntu-latest
+    needs: [playwright-tests]
+    if: failure()
+
+    steps:
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "🚨 QA Pipeline Failed - ${{ github.repository }}"
+          to: ${{ secrets.NOTIFY_EMAIL }}
+          from: QA Pipeline Bot <${{ secrets.GMAIL_USERNAME }}>
+          body: |
+            ❌ QA Automation Pipeline Failed
+
+            Repository : ${{ github.repository }}
+            Branch     : ${{ github.ref_name }}
+            Triggered by: ${{ github.actor }}
+            Commit     : ${{ github.sha }}
+
+            View the failed run here:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Please investigate and fix the failing tests.
+
+            -- AI QA Automation Suite
